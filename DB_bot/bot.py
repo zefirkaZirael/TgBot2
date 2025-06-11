@@ -1,11 +1,9 @@
-import config
-import telebot
-from botGame import Pokemon
 from db import DB_Manager
-from config import *
-from telebot import TeleBot
+import config 
+import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
 from telebot import types
+from utils import gen_markup, gen_inline_markup
 
 bot = telebot.TeleBot(config.TOKEN)
 hideBoard = types.ReplyKeyboardRemove() 
@@ -15,32 +13,7 @@ hideBoard = types.ReplyKeyboardRemove()
 @bot.message_handler(commands=['help', 'start'])
 def send_welcome(message):
     bot.reply_to(message, """\
-Hi there, I am EchoBot.
-I am here to echo your kind words back to you. Just say anything nice and I'll say the exact same thing to you!\
-""")
-
-### POKEMON GAME
-@bot.message_handler(commands=['go'])
-def go(message):
-    if message.from_user.username not in Pokemon.pokemons.keys():
-        pokemon = Pokemon(message.from_user.username)
-        bot.send_message(message.chat.id, pokemon.info())
-        bot.send_photo(message.chat.id, pokemon.show_img())
-    else:
-        bot.reply_to(message, "Ты уже создал себе покемона")
-
-@bot.message_handler(commands=['feed'])
-def feed_pok(message):
-    if message.from_user.username in Pokemon.pokemons.keys():
-        pok = Pokemon.pokemons[message.from_user.username]
-        response = pok.feed()
-        bot.send_message(message.chat.id, response)
-    else:
-        bot.send_message(message.chat.id, "У вас нет покемона!")
-
-
-
-
+Hi there, I work with DB""")
 
 ### WORK WITH DB 
 
@@ -50,21 +23,6 @@ def cansel(message):
   
 def no_projects(message):
     bot.send_message(message.chat.id, 'У тебя пока нет проектов!\nМожешь добавить их с помошью команды /new_project')
-
-def gen_inline_markup(rows):
-    markup = InlineKeyboardMarkup()
-    markup.row_width = 1
-    for row in rows:
-        markup.add(InlineKeyboardButton(row, callback_data=row))
-    return markup
-
-def gen_markup(rows):
-    markup = ReplyKeyboardMarkup(one_time_keyboard=True)
-    markup.row_width = 1
-    for row in rows:
-        markup.add(KeyboardButton(row))
-    markup.add(KeyboardButton(cancel_button))
-    return markup
 
 attributes_of_projects = {'Имя проекта' : ["Введите новое имя проекта", "project_name"],
                           "Описание" : ["Введите новое описание проекта", "description"],
