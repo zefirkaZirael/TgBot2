@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 pytelegrambotapi = "*"
+opencv-python = "*"
 
 [dev-packages]
 
