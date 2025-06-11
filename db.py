@@ -78,7 +78,7 @@ class DB_Manager:
 
     #ЛогикА взаимодействия с БД
     def insert_project(self, data):
-        sql = "" #   SQL запрос
+        sql = """INSERT INTO projects (user_id, project_name, url, status_id) values(?, ?, ?, ?)"""
         self.__executemany(sql, data)
 
 
@@ -92,7 +92,7 @@ class DB_Manager:
 
 
     def get_statuses(self):
-        sql = "" #   SQL запрос
+        sql = "SELECT status_name from status"
         return self.__select_data(sql)
         
 
@@ -103,7 +103,7 @@ class DB_Manager:
         else: return None
 
     def get_projects(self, user_id):
-        sql = "" #   SQL запрос
+        sql = """SELECT * FROM projects WHERE user_id = ?"""
         return self.__select_data(sql, data = (user_id,))
         
     def get_project_id(self, project_name, user_id):
@@ -130,20 +130,15 @@ WHERE project_name=? AND user_id=?
 
 
     def update_projects(self, param, data):
-        sql = "" #   SQL запрос
+        sql = f"""UPDATE projects SET {param} = ? WHERE project_name = ? AND user_id = ?"""
         self.__executemany(sql, [data]) 
 
 
     def delete_project(self, user_id, project_id):
-        sql = "" #   SQL запрос
+        sql = """DELETE FROM projects WHERE user_id = ? AND project_id = ?"""
         self.__executemany(sql, [(user_id, project_id)])
     
     def delete_skill(self, project_id, skill_id):
-        sql = "" #   SQL запрос
+        sql = """DELETE FROM skills WHERE skill_id = ? AND project_id = ?"""
         self.__executemany(sql, [(skill_id, project_id)])
 
-
-if __name__ == '__main__':
-    manager = DB_Manager(DATABASE)
-
-    
