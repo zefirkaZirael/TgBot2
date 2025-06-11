@@ -1,53 +1,33 @@
-import os
 import telebot
-from logic import process_image
-from config import TOKEN
+from logic import FusionBrainAPI
+from config import TOKEN, API_KEY, SECRET_KEY
 
+# Инициализация бота
 bot = telebot.TeleBot(TOKEN)
 
+# Обработчик стартового сообщения
 @bot.message_handler(commands=['start'])
-def handle_start(message):
-    bot.send_message(message.chat.id, "Привет! Отправьте мне фото, и я замаскирую лица на нем.")
+def send_welcome(message):
+    bot.reply_to(message, "Привет! Напиши, какую картинку ты хочешь создать, и я сделаю её для тебя.")
 
-@bot.message_handler(content_types=['photo'])
-def handle_photo(message):
-    try:
-        # Получаем файл фотографии
-        file_id = message.photo[-1].file_id 
-        file_info = bot.get_file(file_id)
-        file_ext = '.jpg'
+# Обработчик текстовых сообщений
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    prompt = message.text
 
-        # Скачиваем файл
-        downloaded_file = bot.download_file(file_info.file_path)
-
-        # Сохраняем файл локально
-        input_file_path = f"input{file_ext}"
-        with open(input_file_path, 'wb') as new_file:
-            new_file.write(downloaded_file)
-
-        # Задаем имя выходного файла
-        output_file_path = f"output{file_ext}"
-
-        # Обрабатываем файл (размытие лиц)
-        process_image(input_file_path, output_file_path)
-
-        # Отправляем обратно результат в виде фото
-        with open(output_file_path, 'rb') as processed_photo:
-            bot.send_photo(message.chat.id, processed_photo)
-
-        # Удаляем временные файлы
-        os.remove(input_file_path)
-        os.remove(output_file_path)
-
-        # Удаляем сообщение с фото из чата
-        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+    # Используем FusionBrainAPI для генерации изображения
+    api = FusionBrainAPI('https://api-key.fusionbrain.ai/', API_KEY, SECRET_KEY)
+    pipeline_id = api.get_pipeline()
+    uuid = api.generate(prompt, pipeline_id)
+    files = api.check_generation(uuid)[0]
     
-    except Exception as e:
-        bot.send_message(message.chat.id, f"Произошла ошибка: {str(e)}")
+    # Сохраняем изображение на диск
+    api.save_image(files, "generated_image.jpg")
 
-@bot.message_handler(commands=['help'])
-def handle_help(message):
-    bot.send_message(message.chat.id, "Отправьте мне фото, и я размою лица на нем.")
 
-if __name__ == "__main__":
-    bot.polling(none_stop=True)
+    # Отправляем изображение пользователю
+    with open("generated_image.jpg", 'rb') as photo:
+        bot.send_photo(message.chat.id, photo)
+
+# Запуск бота
+bot.polling()

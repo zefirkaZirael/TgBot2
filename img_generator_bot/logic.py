@@ -59,6 +59,7 @@ class FusionBrainAPI:
         print(f"Image saved to {file_path}")
 
 
+#  Проверка
 if __name__ == '__main__':
     api = FusionBrainAPI('https://api-key.fusionbrain.ai/', API_KEY, SECRET_KEY)
     pipeline_id = api.get_pipeline()
